@@ -19,16 +19,10 @@ local BRAND = {
 }
 
 -- ============================================
--- 工具函数（PVX 通用）
--- ============================================
-local R = game:GetService("ReplicatedStorage")
-local P = require(R:WaitForChild("Paper"))
-local function S(n) local ok, v = pcall(P.Stats.GetValue, n) return ok and v or 0 end
-local function F(c, ...) return P.Network.InvokeServer(c, ...) end
-
--- ============================================
 -- 主窗口
 -- ============================================
+local bgUrl = "https://i.postimg.cc/PxFRnSbY/709B55DE-76B9-4B11-837A-739A90EF6D6B.jpg"
+
 local Window = WindUI:CreateWindow({
     Title       = BRAND.name,
     Icon        = BRAND.icon,
@@ -41,6 +35,7 @@ local Window = WindUI:CreateWindow({
     HideSearchBar = false,
     Resizable   = true,
     SideBarWidth = 240,
+    Background = bgUrl,
 
     Search = {
         Enabled = true,
@@ -110,97 +105,7 @@ task.spawn(function()
     end
 end)
 
--- ============================================
--- 侧边栏分类
--- ============================================
-local MainSection = Window:Section({ Title = "功能", Opened = true })
-
--- ============================================
--- Tab 页签
--- ============================================
-local Tab1 = MainSection:Tab({ Title = "鸡场 🐣", Icon = "zap" })
-local Tab2 = MainSection:Tab({ Title = "设置", Icon = "settings" })
-local Tab3 = MainSection:Tab({ Title = "关于", Icon = "info" })
-Tab1:Select()
-
--- ============================================
--- 鸡场 🐣 自动采集
--- ============================================
-local St = { run = false }
-
-local function StopAll()
-    St.run = false
-    _G.LCF_THREAD = nil
-end
-
-local function StartLoop()
-    if _G.LCF_THREAD then return end
-    St.run = true
-    _G.LCF_THREAD = task.spawn(function()
-        task.wait(1)
-        while St.run do
-            if St.eggs then
-                local eggs = workspace:FindFirstChild("Eggs")
-                if eggs then
-                    for _, egg in ipairs(eggs:GetChildren()) do
-                        pcall(P.Network.FireServer, "Collect Egg", egg.Name)
-                        task.wait()
-                    end
-                end
-            end
-            if St.deposit then pcall(F, "Deposit Eggs") end
-            if St.cash then
-                local cc = S("CashCollect")
-                if cc and cc > 0 then pcall(F, "Collect Cash") end
-            end
-            if St.merge then pcall(F, "Merge Chickens") end
-            if St.buy then pcall(F, "Buy Chickens", 100) end
-            task.wait(0.15)
-        end
-        _G.LCF_THREAD = nil
-    end)
-end
-
-Tab1:Paragraph({ Title = "自动采集", Desc = "鸡场自动化脚本" })
-
-Tab1:Toggle({ Title = "▶ 启动", Default = false, Callback = function(v)
-    if v then StartLoop() else StopAll() end
-end})
-
-Tab1:Toggle({ Title = "捡蛋", Default = false, Callback = function(v) St.eggs = v end})
-Tab1:Toggle({ Title = "存蛋加工", Default = false, Callback = function(v) St.deposit = v end})
-Tab1:Toggle({ Title = "收现金", Default = false, Callback = function(v) St.cash = v end})
-Tab1:Toggle({ Title = "合成鸡", Default = false, Callback = function(v) St.merge = v end})
-Tab1:Toggle({ Title = "买鸡 x100", Default = false, Callback = function(v) St.buy = v end})
-
-Tab1:Button({ Title = "买鸡 x100", Callback = function()
-    local ok, r = F("Buy Chickens", 100)
-    warn(ok and "✅" or "❌ " .. tostring(r))
-end})
-
-Tab1:Button({ Title = "存蛋", Callback = function()
-    local ok, r = F("Deposit Eggs")
-    warn(ok and "✅" or "❌ " .. tostring(r))
-end})
-
-Tab1:Button({ Title = "收钱", Callback = function()
-    local ok, r = F("Collect Cash")
-    warn(ok and "✅" or "❌ " .. tostring(r))
-end})
-
--- ============================================
--- 设置
--- ============================================
-Tab2:Paragraph({ Title = "快捷键", Desc = "菜单切换: RightShift" })
-Tab2:Button({ Title = "关闭脚本", Variant = "Destructive", Callback = function()
-    Window:Destroy()
-end})
-
--- ============================================
--- 关于
--- ============================================
-Tab3:Paragraph({ Title = "关于", Desc = BRAND.name .. " " .. BRAND.version .. "\n作者: " .. BRAND.author })
-Tab3:Button({ Title = "关闭脚本", Variant = "Destructive", Callback = function() Window:Destroy() end })
+-- 无分类 Tab，窗口留空待填
 
 -- ============================================
 -- Anti-AFK
@@ -212,7 +117,7 @@ game.Players.LocalPlayer.Idled:Connect(function()
     VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
 end)
 
--- 暴露全局给外部脚本调用
+-- 暴露全局
 _G._LCF_WindUI = WindUI
 _G._LCF_TmplWin = Window
 
