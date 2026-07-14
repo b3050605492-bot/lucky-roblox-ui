@@ -19,6 +19,14 @@ local BRAND = {
 }
 
 -- ============================================
+-- 工具函数（PVX 通用）
+-- ============================================
+local R = game:GetService("ReplicatedStorage")
+local P = require(R:WaitForChild("Paper"))
+local function S(n) local ok, v = pcall(P.Stats.GetValue, n) return ok and v or 0 end
+local function F(c, ...) return P.Network.InvokeServer(c, ...) end
+
+-- ============================================
 -- 主窗口
 -- ============================================
 local Window = WindUI:CreateWindow({
@@ -108,35 +116,91 @@ end)
 local MainSection = Window:Section({ Title = "功能", Opened = true })
 
 -- ============================================
--- Tab 页签（5 个空 Tab，以后按游戏填）
+-- Tab 页签
 -- ============================================
-local Tab1 = MainSection:Tab({ Title = "Tab1", Icon = "zap" })
-local Tab2 = MainSection:Tab({ Title = "Tab2", Icon = "settings" })
-local Tab3 = MainSection:Tab({ Title = "Tab3", Icon = "gift" })
-local Tab4 = MainSection:Tab({ Title = "Tab4", Icon = "shopping-cart" })
-local Tab5 = MainSection:Tab({ Title = "Tab5", Icon = "info" })
+local Tab1 = MainSection:Tab({ Title = "鸡场 🐣", Icon = "zap" })
+local Tab2 = MainSection:Tab({ Title = "设置", Icon = "settings" })
+local Tab3 = MainSection:Tab({ Title = "关于", Icon = "info" })
 Tab1:Select()
 
 -- ============================================
--- 空组件占位（以后删掉重写）
+-- 鸡场 🐣 自动采集
 -- ============================================
-Tab1:Paragraph({ Title = "功能1", Desc = "在这里写功能说明" })
-Tab1:Toggle({ Title = "开关1", Default = false, Callback = function(state) end })
-Tab1:Button({ Title = "按钮1", Callback = function() end })
-Tab1:Input({ Title = "输入1", Callback = function(value) end })
-Tab1:Slider({ Title = "滑动1", Min = 1, Max = 100, Default = 50, Callback = function(value) end })
+local St = { run = false }
 
-Tab2:Paragraph({ Title = "功能2", Desc = "在这里写功能说明" })
-Tab2:Toggle({ Title = "开关2", Default = false, Callback = function(state) end })
+local function StopAll()
+    St.run = false
+    _G.LCF_THREAD = nil
+end
 
-Tab3:Paragraph({ Title = "功能3", Desc = "在这里写功能说明" })
-Tab3:Button({ Title = "按钮3", Callback = function() end })
+local function StartLoop()
+    if _G.LCF_THREAD then return end
+    St.run = true
+    _G.LCF_THREAD = task.spawn(function()
+        task.wait(1)
+        while St.run do
+            if St.eggs then
+                local eggs = workspace:FindFirstChild("Eggs")
+                if eggs then
+                    for _, egg in ipairs(eggs:GetChildren()) do
+                        pcall(P.Network.FireServer, "Collect Egg", egg.Name)
+                        task.wait()
+                    end
+                end
+            end
+            if St.deposit then pcall(F, "Deposit Eggs") end
+            if St.cash then
+                local cc = S("CashCollect")
+                if cc and cc > 0 then pcall(F, "Collect Cash") end
+            end
+            if St.merge then pcall(F, "Merge Chickens") end
+            if St.buy then pcall(F, "Buy Chickens", 100) end
+            task.wait(0.15)
+        end
+        _G.LCF_THREAD = nil
+    end)
+end
 
-Tab4:Paragraph({ Title = "功能4", Desc = "在这里写功能说明" })
-Tab4:Toggle({ Title = "开关4", Default = false, Callback = function(state) end })
+Tab1:Paragraph({ Title = "自动采集", Desc = "鸡场自动化脚本" })
 
-Tab5:Paragraph({ Title = "关于", Desc = BRAND.name .. " " .. BRAND.version .. "\n作者: " .. BRAND.author })
-Tab5:Button({ Title = "关闭脚本", Variant = "Destructive", Callback = function() Window:Destroy() end })
+Tab1:Toggle({ Title = "▶ 启动", Default = false, Callback = function(v)
+    if v then StartLoop() else StopAll() end
+end})
+
+Tab1:Toggle({ Title = "捡蛋", Default = false, Callback = function(v) St.eggs = v end})
+Tab1:Toggle({ Title = "存蛋加工", Default = false, Callback = function(v) St.deposit = v end})
+Tab1:Toggle({ Title = "收现金", Default = false, Callback = function(v) St.cash = v end})
+Tab1:Toggle({ Title = "合成鸡", Default = false, Callback = function(v) St.merge = v end})
+Tab1:Toggle({ Title = "买鸡 x100", Default = false, Callback = function(v) St.buy = v end})
+
+Tab1:Button({ Title = "买鸡 x100", Callback = function()
+    local ok, r = F("Buy Chickens", 100)
+    warn(ok and "✅" or "❌ " .. tostring(r))
+end})
+
+Tab1:Button({ Title = "存蛋", Callback = function()
+    local ok, r = F("Deposit Eggs")
+    warn(ok and "✅" or "❌ " .. tostring(r))
+end})
+
+Tab1:Button({ Title = "收钱", Callback = function()
+    local ok, r = F("Collect Cash")
+    warn(ok and "✅" or "❌ " .. tostring(r))
+end})
+
+-- ============================================
+-- 设置
+-- ============================================
+Tab2:Paragraph({ Title = "快捷键", Desc = "菜单切换: RightShift" })
+Tab2:Button({ Title = "关闭脚本", Variant = "Destructive", Callback = function()
+    Window:Destroy()
+end})
+
+-- ============================================
+-- 关于
+-- ============================================
+Tab3:Paragraph({ Title = "关于", Desc = BRAND.name .. " " .. BRAND.version .. "\n作者: " .. BRAND.author })
+Tab3:Button({ Title = "关闭脚本", Variant = "Destructive", Callback = function() Window:Destroy() end })
 
 -- ============================================
 -- Anti-AFK
@@ -148,13 +212,8 @@ game.Players.LocalPlayer.Idled:Connect(function()
     VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
 end)
 
-print("[" .. BRAND.name .. "] UI 纯净模板已加载 ✅")
+-- 暴露全局给外部脚本调用
+_G._LCF_WindUI = WindUI
+_G._LCF_TmplWin = Window
 
---[[ ============================================
-  使用方式：
-  1. 复制这个文件
-  2. 改 BRAND 表里的 name/version
-  3. 改 Tab 标题和图标
-  4. 在 Callback 里填游戏功能逻辑
-  5. 删掉不需要的占位组件
-  ============================================ ]]
+print("[" .. BRAND.name .. "] UI 纯净模板已加载 ✅")
