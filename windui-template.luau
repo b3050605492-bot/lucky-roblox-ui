@@ -56,7 +56,7 @@ local Window = WindUI:CreateWindow({
 -- ============================================
 -- 背景图
 -- ============================================
-local bgUrl = "https://i.postimg.cc/PxFRnSbY/709B55DE-76B9-4B11-837A-739A90EF6D6B.jpg"
+local bgUrl = "https://raw.githubusercontent.com/b3050605492-bot/lucky-roblox-ui/main/bg.jpg"
 task.spawn(function()
     task.wait(0.3)
     local bg = game.CoreGui.HiddenUI.WindUI.Window.Frame.Background
