@@ -9,8 +9,8 @@ local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footag
 -- 品牌配置（改这 4 行就行）
 -- ============================================
 local BRAND = {
-    name    = "Lucky助手",
-    version = "v0.1",
+    name    = "Lucky脚本",
+    version = "v1.0",
     author  = "Lucky",
     folder  = "LuckyHub",
     icon    = "zap",
@@ -52,21 +52,6 @@ local Window = WindUI:CreateWindow({
         end,
     },
 })
-
--- ============================================
--- 背景图
--- ============================================
-local bgUrl = "https://raw.githubusercontent.com/b3050605492-bot/lucky-roblox-ui/main/bg.jpg"
-task.spawn(function()
-    task.wait(0.3)
-    local bg = game.CoreGui.HiddenUI.WindUI.Window.Frame.Background
-    if bg and bg:IsA("ImageLabel") then
-        bg.Image = bgUrl
-        bg.ScaleType = Enum.ScaleType.Crop
-        bg.ImageTransparency = 0
-        game:GetService("ContentProvider"):Preload({bgUrl})
-    end
-end)
 
 -- ============================================
 -- 顶部主题切换按钮
@@ -117,7 +102,9 @@ task.spawn(function()
     end
 end)
 
+-- ============================================
 -- 无分类 Tab，窗口留空待填
+-- ============================================
 
 -- ============================================
 -- Anti-AFK
