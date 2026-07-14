@@ -54,29 +54,17 @@ local Window = WindUI:CreateWindow({
 })
 
 -- ============================================
--- 背景图（外部 URL）
+-- 背景图
 -- ============================================
 local bgUrl = "https://i.postimg.cc/PxFRnSbY/709B55DE-76B9-4B11-837A-739A90EF6D6B.jpg"
 task.spawn(function()
-    for i = 1, 30 do
-        local sg = game.CoreGui:FindFirstChild("HiddenUI")
-        if sg then
-            local win = sg:FindFirstChild("WindUI") or sg:FindFirstChild(BRAND.folder)
-            if win then
-                local frame = win:FindFirstChild("Window")
-                if frame then
-                    local bg = frame:FindFirstChild("Frame") and frame.Frame:FindFirstChild("Background")
-                    if bg and bg:IsA("ImageLabel") then
-                        bg.Image = bgUrl
-                        bg.ScaleType = Enum.ScaleType.Crop
-                        bg.ImageTransparency = 0.15
-                        game:GetService("ContentProvider"):Preload({bgUrl})
-                        break
-                    end
-                end
-            end
-        end
-        task.wait(0.1)
+    task.wait(0.3)
+    local bg = game.CoreGui.HiddenUI.WindUI.Window.Frame.Background
+    if bg and bg:IsA("ImageLabel") then
+        bg.Image = bgUrl
+        bg.ScaleType = Enum.ScaleType.Crop
+        bg.ImageTransparency = 0
+        game:GetService("ContentProvider"):Preload({bgUrl})
     end
 end)
 
